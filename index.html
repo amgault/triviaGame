@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>It's Science (Trivia)</title>
+
+		<!-- Bootstrap -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+		<link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
+
+		<!-- jQuery -->
+    	<script type="text/javascript" src="https://code.jquery.com/jquery-2.2.0.js"></script>
+
+		<style>
+			body {
+				background-image: url('assets/images/science.png');
+				font-family: 'Inconsolata', monospace, 'Lato', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+				font-size: 36px;
+			}
+			.textbox {
+				background-color: #111466;
+				color: white;
+				text-align: center;
+				margin-top: 50px;
+				padding: 24px;
+				height: 700px;
+			}
+			.title {
+				font-size: 48px;
+				margin-bottom: 36px;
+			}
+			.time {
+				height: 36px;
+				margin-bottom: 12px;
+			}
+			.startbtn {
+				width: 40%;
+				color: #111466;
+				margin-top: 200px;
+			}
+			.answerbtn {
+				width: 50%;
+				color: white;
+				border-style: none;
+				background-color: #111466;
+			}
+			.answerbtn:hover {
+				background-color: blue;
+			}
+
+		</style>
+
+	</head>
+
+	<body>
+
+		<div class="container-fluid">
+			<div class="col-lg-8 col-lg-offset-2 textbox">
+				<div class="title">You Blinded Me with Science... Trivia!!!</div>
+				<div class="time" id="time"></div>
+				<div class="question" id="question"></div>
+				<button class="startbtn" id='start'>Start</button>
+			</div>
+		</div>
+
+		<script>
+
+			$('#start').on('click', function(e) {
+				$('#start').hide();
+				question.start();
+			});
+
+			$('#question').on('click', '#answerbtn', function(e) {
+				alert($(this).attr('data-name'));
+			});
+
+			var intervalID;
+
+			var clockRunning = false;
+
+			var question = {
+				time: 5,
+
+				"category": "Science & Nature",
+				"type": "multiple",
+				"difficulty": "medium",
+				"question": "Along with Oxygen, which element is primarily responsible for the sky appearing blue?",
+				"correct_answer": "Nitrogen", 
+				"incorrect_answers": ["Helium", "Carbon","Hydrogen"],
+
+				displayQuestion: function () {
+					$('#question').append('<p>' + this.question + '</p>');
+
+					$('#question').append(
+						'<div><button class="answerbtn" id="answerbtn" data-name=' 
+						+ this.correct_answer +'>' 
+						+ this.correct_answer  
+						+ '</button></div>');
+
+					for (var i = 0; i < this.incorrect_answers.length; i++) {
+						$('#question').append(
+							'<div><button class="answerbtn" id="answerbtn" data-name=' 
+							+ this.incorrect_answers[i] +'>' 
+							+ this.incorrect_answers[i] 
+							+ '</button></div>');
+					}	
+				},
+
+				start: function () {
+					$('#time').html('<p>Time Remaining: 6 second(s)</p>');
+					if (!clockRunning) {
+						question.displayQuestion();
+        				intervalId = setInterval(question.count, 1000);
+        				clockRunning = true;
+        			}
+        			
+				},
+
+				count: function() {
+					$('#time').html('<p>Time Remaining: ' + question.time + ' second(s)</p>');
+					
+					if(question.time === 0) {
+						question.outOfTime();
+					}
+
+					question.time--;
+				},
+
+				outOfTime: function () {
+					clearInterval(intervalId);
+    				clockRunning = false;
+    				$('#question').html('<p>Out of Time!</p>');
+				}
+			}
+
+		</script>
+
+		
+		
+	</body>
+</html>
+
+
+
+
+

@@ -78,7 +78,7 @@
 			
 			// Question Object
 			function Question(x) {
-				this.questionTime = 10,
+				this.questionTime = 20,
 				this.questionInterval = null;
 				this.quTimeRunning = false,
 
@@ -94,6 +94,7 @@
 				tranTimeRunning: false,
 				questions: [],
 				currentQuestion: null,
+				guessed: false,
 				wins: 0,
 				loses: 0,
 
@@ -104,9 +105,10 @@
 
 				start: function () {
 
-					transitionTime = 3;
-					transitionInterval = null;
-					tranTimeRunning = false;
+					this.transitionTime = 4;
+					this.transitionInterval = null;
+					this.tranTimeRunning = false;
+					this.guessed = false;
 
 					$.when(this.getQuestion(this.questions)).done(this.setTimer());
         			
@@ -116,6 +118,7 @@
 
 					var randomIndex = Math.floor(Math.random() * quArray.length);
 					this.currentQuestion = quArray[randomIndex];
+					// delete question from array
 					console.log(this.currentQuestion);
 				},
 
@@ -125,17 +128,13 @@
 					$('#question').append('<p>' + this.currentQuestion.question + '</p>');
 
 					$('#question').append(
-						'<div><button class="answerbtn" id="answerbtn" data-name=' 
-						+ this.currentQuestion.correct_answer +'>' 
-						+ this.currentQuestion.correct_answer  
-						+ '</button></div>');
+						'<div><button class="answerbtn" id="answerbtn" data-name="correct">' 
+						+ this.currentQuestion.correct_answer + '</button></div>');
 
 					for (var i = 0; i < this.currentQuestion.incorrect_answers.length; i++) {
 						$('#question').append(
-							'<div><button class="answerbtn" id="answerbtn" data-name=' 
-							+ this.currentQuestion.incorrect_answers[i] +'>' 
-							+ this.currentQuestion.incorrect_answers[i] 
-							+ '</button></div>');
+							'<div><button class="answerbtn" id="answerbtn" data-name="incorrect">' 
+							+ this.currentQuestion.incorrect_answers[i] + '</button></div>');
 					}	
 				},
 
@@ -154,9 +153,10 @@
 					$('#time').html('<p>Time Remaining: ' + triviaGame.currentQuestion.questionTime + ' second(s)</p>');
 					
 					if(triviaGame.currentQuestion.questionTime === 0) {
+						console.log('outof time');
 						triviaGame.outOfTime();
 					}
-					console.log(triviaGame.currentQuestion.questionTime);
+					//console.log(triviaGame.currentQuestion.questionTime);
 
 					triviaGame.currentQuestion.questionTime--;
 				},
@@ -165,7 +165,7 @@
 					clearInterval(triviaGame.currentQuestion.questionInvertval);
 					this.tranTimeRunning = true;
 
-					if(answer === this.currentQuestion.correct_answer) {
+					if(answer === 'correct') {
 						this.wins++;
 						triviaGame.transitionInterval = setInterval(triviaGame.displayCorrectGuess, 1000);
 
@@ -184,9 +184,10 @@
 					$('#question').append('<p>CORRECT!</p>');
 
 					if(triviaGame.transitionTime === 0) {
+						clearInterval(triviaGame.transitionInterval);
 						triviaGame.start();
 					}
-
+					console.log(triviaGame.transitionTime);
 					triviaGame.transitionTime--;
 				},
 
@@ -196,6 +197,7 @@
 					$('#question').append('<p>Sorry, that was incorrect!</p><p>The correct answer is ' + triviaGame.currentQuestion.correct_answer + '</p>');
 
 					if(triviaGame.transitionTime === 0) {
+						clearInterval(triviaGame.transitionInterval);
 						triviaGame.start();
 					}
 
@@ -204,8 +206,22 @@
 
 				outOfTime: function () {
 					clearInterval(triviaGame.currentQuestion.questionInvertval);
-    				this.tranTimeRunning = false;
-    				$('#question').html('<p>Out of Time!</p>');
+    				triviaGame.currentQuestion.quTimeRunning = false;
+    				
+    				triviaGame.transitionInterval = setInterval(triviaGame.displayOutOfTime, 1000);
+
+    				loses++;
+				},
+
+				displayOutOfTime: function () {
+					$('#question').html('<p>Out of Time!</p>');
+
+					if(triviaGame.transitionTime === 0) {
+						clearInterval(triviaGame.transitionInterval);
+						triviaGame.start();
+					}
+
+					triviaGame.transitionTime--;
 				}
 			};
 
@@ -221,8 +237,10 @@
 				});
 
 				$('#question').on('click', '#answerbtn', function(e) {
-					triviaGame.checkAnswer($(this).attr('data-name'));
-					alert($(this).attr('data-name'));
+					if(!triviaGame.guessed) {
+						triviaGame.guessed = true;
+						triviaGame.checkAnswer($(this).attr('data-name'));
+					}
 				});
 
 				// API calls, just loads once when page refreshed

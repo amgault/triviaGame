@@ -1,0 +1,39 @@
+body {
+				background-image: url('assets/images/science.png');
+				font-family: 'Inconsolata', monospace, 'Lato', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+				font-size: 36px;
+			}
+			.textbox {
+				background-color: #111466;
+				color: white;
+				text-align: center;
+				margin-top: 50px;
+				padding: 24px;
+				height: 700px;
+			}
+			.title {
+				font-size: 48px;
+				margin-bottom: 36px;
+			}
+			.time {
+				height: 36px;
+				margin-bottom: 12px;
+			}
+			.startbtn {
+				width: 40%;
+				color: #111466;
+				margin-top: 150px;
+			}
+			.restart {
+				width: 40%;
+				color: #111466;
+			}
+			.answerbtn {
+				width: 50%;
+				color: white;
+				border-style: none;
+				background-color: #111466;
+			}
+			.answerbtn:hover {
+				background-color: blue;
+			}

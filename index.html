@@ -12,52 +12,8 @@
 		<!-- jQuery -->
     	<script type="text/javascript" src="https://code.jquery.com/jquery-2.2.0.js"></script>
 
-    	<!-- https://opentdb.com/api.php?amount=25&category=18&difficulty=medium&type=multiple -->
-
-    	<!-- https://opentdb.com/api.php?amount=25&category=18&difficulty=medium&type=easy -->
-
-		<style>
-			body {
-				background-image: url('assets/images/science.png');
-				font-family: 'Inconsolata', monospace, 'Lato', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-				font-size: 36px;
-			}
-			.textbox {
-				background-color: #111466;
-				color: white;
-				text-align: center;
-				margin-top: 50px;
-				padding: 24px;
-				height: 700px;
-			}
-			.title {
-				font-size: 48px;
-				margin-bottom: 36px;
-			}
-			.time {
-				height: 36px;
-				margin-bottom: 12px;
-			}
-			.startbtn {
-				width: 40%;
-				color: #111466;
-				margin-top: 150px;
-			}
-			.restart {
-				width: 40%;
-				color: #111466;
-			}
-			.answerbtn {
-				width: 50%;
-				color: white;
-				border-style: none;
-				background-color: #111466;
-			}
-			.answerbtn:hover {
-				background-color: blue;
-			}
-
-		</style>
+		<link rel="stylesheet" type="css" href="assets/css/reset.css">
+		<link rel="stylesheet" type="css" href="assets/css/style.css">
 
 	</head>
 
@@ -91,7 +47,7 @@
 				this.incorrect_answers = x.incorrect_answers
 			};
 			
-			// Question object
+			// triviaGame object
 			var triviaGame = {
 				transitionTime: null,
 				transitionInterval: null,
@@ -103,6 +59,7 @@
 				loses: 0,
 				unanswered: 0,
 
+				// Called when a new game is started
 				init: function () {
 					this.questions = QUESTIONSARRAY;
 					this.wins = 0;
@@ -111,6 +68,7 @@
 
 				},
 
+				// Called for each new question
 				start: function () {
 
 					this.transitionTime = 3;
@@ -118,7 +76,6 @@
 					this.tranTimeRunning = false;
 					this.guessed = false;
 
-					//console.log(this.wins + this.loses + this.unanswered);
 					if((this.wins + this.loses + this.unanswered) == 10){
 						this.gameOver();
 					}
@@ -128,6 +85,7 @@
         			
 				},
 
+				// Gets a random question from array and deletes that cell
 				getQuestion: function (quArray) {
 
 					var randomIndex = Math.floor(Math.random() * quArray.length);
@@ -137,6 +95,7 @@
 					
 				},
 
+				// Displays that questions and answers
 				displayQuestion: function () {
 					$('#question').empty();
 
@@ -153,6 +112,7 @@
 					}	
 				},
 
+				//  Sets the time for answering a question
 				setTimer: function () {
 
 					$('#time').html('<p>Time Remaining: 20 second(s)</p>');
@@ -163,19 +123,19 @@
          			}
 				},
 
+				// Updates the time left to answer question
 				count: function() {
 
 					$('#time').html('<p>Time Remaining: ' + triviaGame.currentQuestion.questionTime + ' second(s)</p>');
 					
 					if(triviaGame.currentQuestion.questionTime === 0) {
-						console.log('out of time');
 						triviaGame.outOfTime();
 					}
-					//console.log(triviaGame.currentQuestion.questionTime);
 
 					triviaGame.currentQuestion.questionTime--;
 				},
 
+				// Checks the answer that the user selected
 				checkAnswer: function(answer){
 					clearInterval(triviaGame.currentQuestion.questionInvertval);
 					this.tranTimeRunning = true;
@@ -183,19 +143,17 @@
 
 					if(answer === 'correct') {
 						this.wins++;
-						//console.log(this.wins);
 						triviaGame.transitionInterval = setInterval(triviaGame.displayCorrectGuess, 1000);
 
 					}
 					else {
 						this.loses++;
-						//console.log(this.loses);
 						triviaGame.transitionInterval = setInterval(triviaGame.displayIncorrectGuess, 1000);
 
 					}
-					console.log(answer);
 				},
 
+				// Updates the display if answer guessed is correct
 				displayCorrectGuess: function(){
 					$('#question').empty();
 
@@ -209,6 +167,7 @@
 					triviaGame.transitionTime--;
 				},
 
+				// Updates the display if answer guessed is incorrect
 				displayIncorrectGuess: function(){
 					$('#question').empty();
 
@@ -223,6 +182,7 @@
 					triviaGame.transitionTime--;
 				},
 
+				// Sets timer for unanswered questions
 				outOfTime: function () {
 					clearInterval(triviaGame.currentQuestion.questionInvertval);
     				triviaGame.currentQuestion.quTimeRunning = false;
@@ -232,6 +192,7 @@
     				this.unanswered++;
 				},
 
+				// Updates the display if question is left unanswered
 				displayOutOfTime: function () {
 					$('#question').html('<p>Out of Time!</p>' + '<p>The correct answer is ' 
 						+ triviaGame.currentQuestion.correct_answer + '</p>' );
@@ -244,8 +205,8 @@
 					triviaGame.transitionTime--;
 				},
 
+				// Updates the display once the game is over
 				gameOver: function () {
-					console.log('inside game over');
 					$('#question').empty();
 
 					$('#question').append('<p>Game over, here\'s how you did!</p>');
@@ -266,23 +227,28 @@
 				// initializes our trivia game
 				triviaGame.init();
 
-				// Click Functions
+				// CLICK FUNCTIONS
+				// Start button starts the game and hides the start button
 				$('#start').on('click', function(e) {
 					$('#start').hide();
 					triviaGame.start();
 				});
 
+				// Takes in the (first) answer selected 
 				$('#question').on('click', '#answerbtn', function(e) {
 					if(!triviaGame.guessed) {
 						triviaGame.guessed = true;
 						triviaGame.checkAnswer($(this).attr('data-name'));
 					}
 				});
+
+				//  Restart button starts a new game
 				$('#question').on('click', '#restart', function(e) {
 					triviaGame.start();
 				});
 
 				// API calls, just loads once when page refreshed
+				// 25 Easy questions and 25 Medium questions
 				$.ajax({
 					url: 'https://opentdb.com/api.php?amount=25&category=18&difficulty=easy&type=multiple',
 					method: "GET"
@@ -300,7 +266,7 @@
 							QUESTIONSARRAY.push(n);
 						}
 					});
-					console.log(QUESTIONSARRAY);
+					
 				});
 
 				

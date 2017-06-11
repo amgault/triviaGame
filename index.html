@@ -41,7 +41,11 @@
 			.startbtn {
 				width: 40%;
 				color: #111466;
-				margin-top: 200px;
+				margin-top: 150px;
+			}
+			.restart {
+				width: 40%;
+				color: #111466;
 			}
 			.answerbtn {
 				width: 50%;
@@ -78,7 +82,7 @@
 			
 			// Question Object
 			function Question(x) {
-				this.questionTime = 20,
+				this.questionTime = 19,
 				this.questionInterval = null;
 				this.quTimeRunning = false,
 
@@ -97,20 +101,30 @@
 				guessed: false,
 				wins: 0,
 				loses: 0,
+				unanswered: 0,
 
 				init: function () {
 					this.questions = QUESTIONSARRAY;
+					this.wins = 0;
+					this.loses = 0;
+					this.unanswered = 0;
 
 				},
 
 				start: function () {
 
-					this.transitionTime = 4;
+					this.transitionTime = 3;
 					this.transitionInterval = null;
 					this.tranTimeRunning = false;
 					this.guessed = false;
 
-					$.when(this.getQuestion(this.questions)).done(this.setTimer());
+					//console.log(this.wins + this.loses + this.unanswered);
+					if((this.wins + this.loses + this.unanswered) == 10){
+						this.gameOver();
+					}
+					else {
+						$.when(this.getQuestion(this.questions)).done(this.setTimer());
+					}
         			
 				},
 
@@ -118,8 +132,9 @@
 
 					var randomIndex = Math.floor(Math.random() * quArray.length);
 					this.currentQuestion = quArray[randomIndex];
-					// delete question from array
-					console.log(this.currentQuestion);
+					quArray.splice(randomIndex, 1);
+					this.questions = quArray;
+					
 				},
 
 				displayQuestion: function () {
@@ -140,7 +155,7 @@
 
 				setTimer: function () {
 
-					$('#time').html('<p>Time Remaining: 10 second(s)</p>');
+					$('#time').html('<p>Time Remaining: 20 second(s)</p>');
 					if (!triviaGame.currentQuestion.quTimeRunning) {
 					 	this.displayQuestion();
          				triviaGame.currentQuestion.questionInvertval = setInterval(triviaGame.count, 1000);
@@ -153,7 +168,7 @@
 					$('#time').html('<p>Time Remaining: ' + triviaGame.currentQuestion.questionTime + ' second(s)</p>');
 					
 					if(triviaGame.currentQuestion.questionTime === 0) {
-						console.log('outof time');
+						console.log('out of time');
 						triviaGame.outOfTime();
 					}
 					//console.log(triviaGame.currentQuestion.questionTime);
@@ -164,14 +179,17 @@
 				checkAnswer: function(answer){
 					clearInterval(triviaGame.currentQuestion.questionInvertval);
 					this.tranTimeRunning = true;
+					triviaGame.currentQuestion.quTimeRunning = false;
 
 					if(answer === 'correct') {
 						this.wins++;
+						//console.log(this.wins);
 						triviaGame.transitionInterval = setInterval(triviaGame.displayCorrectGuess, 1000);
 
 					}
 					else {
 						this.loses++;
+						//console.log(this.loses);
 						triviaGame.transitionInterval = setInterval(triviaGame.displayIncorrectGuess, 1000);
 
 					}
@@ -187,14 +205,15 @@
 						clearInterval(triviaGame.transitionInterval);
 						triviaGame.start();
 					}
-					console.log(triviaGame.transitionTime);
+			
 					triviaGame.transitionTime--;
 				},
 
 				displayIncorrectGuess: function(){
 					$('#question').empty();
 
-					$('#question').append('<p>Sorry, that was incorrect!</p><p>The correct answer is ' + triviaGame.currentQuestion.correct_answer + '</p>');
+					$('#question').append('<p>Sorry, that was incorrect!</p><p>The correct answer is ' 
+						+ triviaGame.currentQuestion.correct_answer + '</p>');
 
 					if(triviaGame.transitionTime === 0) {
 						clearInterval(triviaGame.transitionInterval);
@@ -210,11 +229,12 @@
     				
     				triviaGame.transitionInterval = setInterval(triviaGame.displayOutOfTime, 1000);
 
-    				loses++;
+    				this.unanswered++;
 				},
 
 				displayOutOfTime: function () {
-					$('#question').html('<p>Out of Time!</p>');
+					$('#question').html('<p>Out of Time!</p>' + '<p>The correct answer is ' 
+						+ triviaGame.currentQuestion.correct_answer + '</p>' );
 
 					if(triviaGame.transitionTime === 0) {
 						clearInterval(triviaGame.transitionInterval);
@@ -222,7 +242,23 @@
 					}
 
 					triviaGame.transitionTime--;
-				}
+				},
+
+				gameOver: function () {
+					console.log('inside game over');
+					$('#question').empty();
+
+					$('#question').append('<p>Game over, here\'s how you did!</p>');
+
+					$('#question').append('<p>Correct Answers: ' + this.wins + '</p>');
+					$('#question').append('<p>Incorrect Answers: ' + this.loses + '</p>');
+					$('#question').append('<p>Unanswered: ' + this.unanswered + '</p>');
+
+					$('#question').append('<div><button class="restart" id="restart">Start Over?</button></div>');
+
+					this.init();
+				},
+
 			};
 
 			$(document).ready( function(){
@@ -241,6 +277,9 @@
 						triviaGame.guessed = true;
 						triviaGame.checkAnswer($(this).attr('data-name'));
 					}
+				});
+				$('#question').on('click', '#restart', function(e) {
+					triviaGame.start();
 				});
 
 				// API calls, just loads once when page refreshed

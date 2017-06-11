@@ -12,6 +12,10 @@
 		<!-- jQuery -->
     	<script type="text/javascript" src="https://code.jquery.com/jquery-2.2.0.js"></script>
 
+    	<!-- https://opentdb.com/api.php?amount=25&category=18&difficulty=medium&type=multiple -->
+
+    	<!-- https://opentdb.com/api.php?amount=25&category=18&difficulty=medium&type=easy -->
+
 		<style>
 			body {
 				background-image: url('assets/images/science.png');
@@ -64,75 +68,196 @@
 			</div>
 		</div>
 
+
+		<!-- Javascript -->
 		<script>
 
-			$('#start').on('click', function(e) {
-				$('#start').hide();
-				question.start();
-			});
+			// Global array to store questions (should not be altered)
+			var QUESTIONSARRAY = [];
 
-			$('#question').on('click', '#answerbtn', function(e) {
-				alert($(this).attr('data-name'));
-			});
+			
+			// Question Object
+			function Question(x) {
+				this.questionTime = 10,
+				this.questionInterval = null;
+				this.quTimeRunning = false,
 
-			var intervalID;
+				this.question = x.question,
+				this.correct_answer = x.correct_answer, 
+				this.incorrect_answers = x.incorrect_answers
+			};
+			
+			// Question object
+			var triviaGame = {
+				transitionTime: null,
+				transitionInterval: null,
+				tranTimeRunning: false,
+				questions: [],
+				currentQuestion: null,
+				wins: 0,
+				loses: 0,
 
-			var clockRunning = false;
+				init: function () {
+					this.questions = QUESTIONSARRAY;
 
-			var question = {
-				time: 5,
+				},
 
-				"category": "Science & Nature",
-				"type": "multiple",
-				"difficulty": "medium",
-				"question": "Along with Oxygen, which element is primarily responsible for the sky appearing blue?",
-				"correct_answer": "Nitrogen", 
-				"incorrect_answers": ["Helium", "Carbon","Hydrogen"],
+				start: function () {
+
+					transitionTime = 3;
+					transitionInterval = null;
+					tranTimeRunning = false;
+
+					$.when(this.getQuestion(this.questions)).done(this.setTimer());
+        			
+				},
+
+				getQuestion: function (quArray) {
+
+					var randomIndex = Math.floor(Math.random() * quArray.length);
+					this.currentQuestion = quArray[randomIndex];
+					console.log(this.currentQuestion);
+				},
 
 				displayQuestion: function () {
-					$('#question').append('<p>' + this.question + '</p>');
+					$('#question').empty();
+
+					$('#question').append('<p>' + this.currentQuestion.question + '</p>');
 
 					$('#question').append(
 						'<div><button class="answerbtn" id="answerbtn" data-name=' 
-						+ this.correct_answer +'>' 
-						+ this.correct_answer  
+						+ this.currentQuestion.correct_answer +'>' 
+						+ this.currentQuestion.correct_answer  
 						+ '</button></div>');
 
-					for (var i = 0; i < this.incorrect_answers.length; i++) {
+					for (var i = 0; i < this.currentQuestion.incorrect_answers.length; i++) {
 						$('#question').append(
 							'<div><button class="answerbtn" id="answerbtn" data-name=' 
-							+ this.incorrect_answers[i] +'>' 
-							+ this.incorrect_answers[i] 
+							+ this.currentQuestion.incorrect_answers[i] +'>' 
+							+ this.currentQuestion.incorrect_answers[i] 
 							+ '</button></div>');
 					}	
 				},
 
-				start: function () {
-					$('#time').html('<p>Time Remaining: 6 second(s)</p>');
-					if (!clockRunning) {
-						question.displayQuestion();
-        				intervalId = setInterval(question.count, 1000);
-        				clockRunning = true;
-        			}
-        			
+				setTimer: function () {
+
+					$('#time').html('<p>Time Remaining: 10 second(s)</p>');
+					if (!triviaGame.currentQuestion.quTimeRunning) {
+					 	this.displayQuestion();
+         				triviaGame.currentQuestion.questionInvertval = setInterval(triviaGame.count, 1000);
+         				this.currentQuestion.quTimeRunning = true;
+         			}
 				},
 
 				count: function() {
-					$('#time').html('<p>Time Remaining: ' + question.time + ' second(s)</p>');
+
+					$('#time').html('<p>Time Remaining: ' + triviaGame.currentQuestion.questionTime + ' second(s)</p>');
 					
-					if(question.time === 0) {
-						question.outOfTime();
+					if(triviaGame.currentQuestion.questionTime === 0) {
+						triviaGame.outOfTime();
+					}
+					console.log(triviaGame.currentQuestion.questionTime);
+
+					triviaGame.currentQuestion.questionTime--;
+				},
+
+				checkAnswer: function(answer){
+					clearInterval(triviaGame.currentQuestion.questionInvertval);
+					this.tranTimeRunning = true;
+
+					if(answer === this.currentQuestion.correct_answer) {
+						this.wins++;
+						triviaGame.transitionInterval = setInterval(triviaGame.displayCorrectGuess, 1000);
+
+					}
+					else {
+						this.loses++;
+						triviaGame.transitionInterval = setInterval(triviaGame.displayIncorrectGuess, 1000);
+
+					}
+					console.log(answer);
+				},
+
+				displayCorrectGuess: function(){
+					$('#question').empty();
+
+					$('#question').append('<p>CORRECT!</p>');
+
+					if(triviaGame.transitionTime === 0) {
+						triviaGame.start();
 					}
 
-					question.time--;
+					triviaGame.transitionTime--;
+				},
+
+				displayIncorrectGuess: function(){
+					$('#question').empty();
+
+					$('#question').append('<p>Sorry, that was incorrect!</p><p>The correct answer is ' + triviaGame.currentQuestion.correct_answer + '</p>');
+
+					if(triviaGame.transitionTime === 0) {
+						triviaGame.start();
+					}
+
+					triviaGame.transitionTime--;
 				},
 
 				outOfTime: function () {
-					clearInterval(intervalId);
-    				clockRunning = false;
+					clearInterval(triviaGame.currentQuestion.questionInvertval);
+    				this.tranTimeRunning = false;
     				$('#question').html('<p>Out of Time!</p>');
 				}
-			}
+			};
+
+			$(document).ready( function(){
+
+				// initializes our trivia game
+				triviaGame.init();
+
+				// Click Functions
+				$('#start').on('click', function(e) {
+					$('#start').hide();
+					triviaGame.start();
+				});
+
+				$('#question').on('click', '#answerbtn', function(e) {
+					triviaGame.checkAnswer($(this).attr('data-name'));
+					alert($(this).attr('data-name'));
+				});
+
+				// API calls, just loads once when page refreshed
+				$.ajax({
+					url: 'https://opentdb.com/api.php?amount=25&category=18&difficulty=easy&type=multiple',
+					method: "GET"
+				}).done(function(response) {
+					for(var i = 0; i < response.results.length; i++) {
+						var m = new Question(response.results[i]);
+						QUESTIONSARRAY.push(m);
+					}
+					$.ajax({
+						url: 'https://opentdb.com/api.php?amount=25&category=18&difficulty=medium&type=multiple',
+						method: "GET"
+					}).done(function(response) {
+						for(var j = 0; j < response.results.length; j++) {
+							var n = new Question(response.results[j]);
+							QUESTIONSARRAY.push(n);
+						}
+					});
+					console.log(QUESTIONSARRAY);
+				});
+
+				
+
+
+
+			// randomize answers- 
+			// var correctAnsLocation = Math.floor(Math.random()*3);
+			// for (var i = 0; i < incorrect_answers.length; i++) {
+			// 		if (correctAnsLocation === i) {
+			//			append correct
+			// 		}
+			//		append incorrect
+		});
 
 		</script>
 
